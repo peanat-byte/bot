@@ -274,7 +274,7 @@
 				)
 			)
 			(property "Value" "STL160N4F7"
-				(at 2.54 22.86 0)
+				(at 15.494 13.716 0)
 				(show_name no)
 				(do_not_autoplace no)
 				(effects
@@ -344,30 +344,6 @@
 				(polyline
 					(pts
 						(xy -5.08 12.7) (xy -5.08 11.43)
-					)
-					(stroke
-						(width 0.127)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 22.86) (xy 0 22.225)
-					)
-					(stroke
-						(width 0.127)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 22.225) (xy 7.62 22.225)
 					)
 					(stroke
 						(width 0.127)
@@ -547,18 +523,6 @@
 				)
 				(polyline
 					(pts
-						(xy 2.54 22.86) (xy 2.54 22.225)
-					)
-					(stroke
-						(width 0.127)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
 						(xy 2.54 20.955) (xy 3.81 20.955)
 					)
 					(stroke
@@ -688,18 +652,6 @@
 				)
 				(polyline
 					(pts
-						(xy 3.81 20.955) (xy 3.81 22.225)
-					)
-					(stroke
-						(width 0.127)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
 						(xy 4.1275 14.605) (xy 4.445 14.9225)
 					)
 					(stroke
@@ -760,18 +712,6 @@
 				)
 				(polyline
 					(pts
-						(xy 5.08 22.86) (xy 5.08 22.225)
-					)
-					(stroke
-						(width 0.127)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
 						(xy 5.08 18.415) (xy 5.08 10.795)
 					)
 					(stroke
@@ -809,18 +749,6 @@
 				(polyline
 					(pts
 						(xy 5.715 14.9225) (xy 6.0325 15.24)
-					)
-					(stroke
-						(width 0.127)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 7.62 22.225) (xy 7.62 22.86)
 					)
 					(stroke
 						(width 0.127)
@@ -903,7 +831,7 @@
 					)
 				)
 				(pin unspecified line
-					(at 0 30.48 270)
+					(at 3.81 29.21 270)
 					(length 7.62)
 					(name "D"
 						(effects
@@ -920,58 +848,18 @@
 						)
 					)
 				)
-				(pin unspecified line
-					(at 2.54 30.48 270)
-					(length 7.62)
-					(name "D"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
+			)
+			(symbol "STL160N4F7_1_1"
+				(polyline
+					(pts
+						(xy 3.81 20.955) (xy 3.81 21.59)
 					)
-					(number "6"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
+					(stroke
+						(width 0.127)
+						(type solid)
 					)
-				)
-				(pin unspecified line
-					(at 5.08 30.48 270)
-					(length 7.62)
-					(name "D"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "7"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin unspecified line
-					(at 7.62 30.48 270)
-					(length 7.62)
-					(name "D"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "8"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
+					(fill
+						(type none)
 					)
 				)
 			)
@@ -2948,12 +2836,6 @@
 		(uuid "c13b04a7-18b1-4c5a-9e03-ae58c746215d")
 	)
 	(junction
-		(at 134.62 114.3)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "04d4c9da-348e-432a-988c-a99c36688e2f")
-	)
-	(junction
 		(at 184.15 87.63)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -3000,18 +2882,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "37d1af5a-c5c8-4083-b835-6fbfaa7aca09")
-	)
-	(junction
-		(at 134.62 38.1)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "55f6ba55-d242-45bf-85dd-03d93ef9aa1d")
-	)
-	(junction
-		(at 134.62 111.76)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "568746a6-0b57-403b-bba2-bcc99f435820")
 	)
 	(junction
 		(at 104.14 114.3)
@@ -3104,12 +2974,6 @@
 		(uuid "b97271b7-5e97-4517-bd0c-a333a3ac2a5b")
 	)
 	(junction
-		(at 134.62 35.56)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "c660d035-5682-459b-b7d5-409facd21003")
-	)
-	(junction
 		(at 68.58 66.04)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -3126,12 +2990,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "d58af47f-4fad-4991-b909-458849ead205")
-	)
-	(junction
-		(at 134.62 109.22)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "dfda2538-1a09-47b4-a07b-32d4e8a91400")
 	)
 	(junction
 		(at 140.97 66.04)
@@ -3156,12 +3014,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "ec04ea0f-a249-4d70-af83-ef0385e843a4")
-	)
-	(junction
-		(at 134.62 40.64)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "eef842c2-c1ec-40ab-9d20-b3b66e3ba755")
 	)
 	(junction
 		(at 328.93 91.44)
@@ -3244,16 +3096,6 @@
 			(type default)
 		)
 		(uuid "0cb5b91b-b5e6-42f2-a2ed-d5b57ff4ab97")
-	)
-	(wire
-		(pts
-			(xy 134.62 40.64) (xy 134.62 43.18)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "116c12d0-7a45-444a-ad5c-acb6b35cc679")
 	)
 	(wire
 		(pts
@@ -3367,6 +3209,16 @@
 	)
 	(wire
 		(pts
+			(xy 134.62 113.03) (xy 134.62 109.22)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "27a9ea71-4bae-41cb-86f1-3a7cf6f8c033")
+	)
+	(wire
+		(pts
 			(xy 342.9 99.06) (xy 356.87 99.06)
 		)
 		(stroke
@@ -3474,16 +3326,6 @@
 			(type default)
 		)
 		(uuid "40832116-3c53-4d76-9eda-7114df0ed86d")
-	)
-	(wire
-		(pts
-			(xy 134.62 109.22) (xy 134.62 111.76)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "435a6976-5f56-446a-af9b-a10290e3924c")
 	)
 	(wire
 		(pts
@@ -3697,16 +3539,6 @@
 	)
 	(wire
 		(pts
-			(xy 134.62 114.3) (xy 134.62 116.84)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "79f7dd9a-c420-40d8-abac-0a4dcd0976f3")
-	)
-	(wire
-		(pts
 			(xy 198.12 87.63) (xy 198.12 91.44)
 		)
 		(stroke
@@ -3867,6 +3699,16 @@
 	)
 	(wire
 		(pts
+			(xy 133.35 39.37) (xy 134.62 39.37)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "99eb5421-3385-4f23-87b8-ed118911c155")
+	)
+	(wire
+		(pts
 			(xy 198.12 101.6) (xy 184.15 101.6)
 		)
 		(stroke
@@ -3884,6 +3726,16 @@
 			(type default)
 		)
 		(uuid "9f1ab67b-0215-4663-ac64-1fb661e50aa2")
+	)
+	(wire
+		(pts
+			(xy 133.35 113.03) (xy 134.62 113.03)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9f7ce699-87ec-43c3-bc5a-31d82ff8c438")
 	)
 	(wire
 		(pts
@@ -4067,16 +3919,6 @@
 	)
 	(wire
 		(pts
-			(xy 134.62 38.1) (xy 134.62 40.64)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "c9ad9402-4935-4a20-b44d-0617c4bf5d93")
-	)
-	(wire
-		(pts
 			(xy 198.12 99.06) (xy 198.12 101.6)
 		)
 		(stroke
@@ -4237,16 +4079,6 @@
 	)
 	(wire
 		(pts
-			(xy 134.62 111.76) (xy 134.62 114.3)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e869f8b4-2396-4b9d-b204-3e030a310895")
-	)
-	(wire
-		(pts
 			(xy 328.93 83.82) (xy 328.93 91.44)
 		)
 		(stroke
@@ -4287,16 +4119,6 @@
 	)
 	(wire
 		(pts
-			(xy 134.62 35.56) (xy 134.62 38.1)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "f9ee4999-aa60-4919-aeb8-733ec1de3da7")
-	)
-	(wire
-		(pts
 			(xy 104.14 40.64) (xy 104.14 43.18)
 		)
 		(stroke
@@ -4304,6 +4126,16 @@
 			(type default)
 		)
 		(uuid "fa45805e-28e5-4cbb-8b4c-4c74990c7eb2")
+	)
+	(wire
+		(pts
+			(xy 134.62 35.56) (xy 134.62 39.37)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fa9484df-9f8f-4ba6-afc5-1ff031c65c10")
 	)
 	(wire
 		(pts
@@ -7152,26 +6984,6 @@
 				)
 			)
 		)
-		(property "MFG PN" "497-STL160N4F7CT-ND"
-			(at 104.14 116.84 90)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "6"
-			(uuid "3c72777a-84f3-4bb9-a13c-171f4c0ef9aa")
-		)
-		(pin "7"
-			(uuid "d832597a-8540-40fc-bf0f-f0262065c2a3")
-		)
-		(pin "8"
-			(uuid "03b304a1-8e37-445e-8bb3-81486e30f6ef")
-		)
 		(pin "2"
 			(uuid "f6e2768c-cb2b-4207-97b4-0885cb5aadee")
 		)
@@ -7340,26 +7152,6 @@
 					(size 1.27 1.27)
 				)
 			)
-		)
-		(property "MFG PN" "497-STL160N4F7CT-ND"
-			(at 104.14 43.18 90)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "6"
-			(uuid "9997eaad-cda9-4450-972a-bf445d3aee62")
-		)
-		(pin "7"
-			(uuid "790f543f-82d4-48db-a72f-8dca2eea6cdf")
-		)
-		(pin "8"
-			(uuid "ddfd5cf8-862e-4414-9c3f-db937f1b2e0d")
 		)
 		(pin "2"
 			(uuid "7f181bfe-4ffc-4682-b881-c4c232ded8b7")
