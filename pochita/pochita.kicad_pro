@@ -537,7 +537,7 @@
     "last_paths": {
       "idf": "",
       "netlist": "",
-      "plot": "",
+      "plot": "outputs/gerbers/",
       "specctra_dsn": "",
       "step": "pochita.step",
       "vrml": ""

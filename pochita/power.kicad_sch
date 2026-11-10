@@ -6984,6 +6984,17 @@
 				)
 			)
 		)
+		(property "MFG PN" "497-STL160N4F7CT-ND"
+			(at 104.14 116.84 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "2"
 			(uuid "f6e2768c-cb2b-4207-97b4-0885cb5aadee")
 		)
@@ -7144,6 +7155,17 @@
 		)
 		(property "Description" "N-Channel 40 V 120A (Tc) 111W (Tc) Surface Mount PowerFlat™ (5x6)"
 			(at 104.14 43.18 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MFG PN" "497-STL160N4F7CT-ND"
+			(at 104.14 43.18 90)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)

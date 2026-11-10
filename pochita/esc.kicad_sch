@@ -6388,6 +6388,17 @@
 				)
 			)
 		)
+		(property "MFG PN" "497-STL160N4F7CT-ND"
+			(at 354.33 125.73 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "d7a1f29f-9594-490e-bc7c-15ecfce11c93")
 		)
@@ -7342,6 +7353,17 @@
 			)
 		)
 		(property "Description" "N-Channel 40 V 120A (Tc) 111W (Tc) Surface Mount PowerFlat™ (5x6)"
+			(at 308.61 125.73 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MFG PN" "497-STL160N4F7CT-ND"
 			(at 308.61 125.73 0)
 			(hide yes)
 			(show_name no)
@@ -8882,6 +8904,17 @@
 			)
 		)
 		(property "Description" "N-Channel 40 V 120A (Tc) 111W (Tc) Surface Mount PowerFlat™ (5x6)"
+			(at 259.08 125.73 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MFG PN" "497-STL160N4F7CT-ND"
 			(at 259.08 125.73 0)
 			(hide yes)
 			(show_name no)
@@ -10965,6 +10998,17 @@
 				)
 			)
 		)
+		(property "MFG PN" "497-STL160N4F7CT-ND"
+			(at 308.61 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "2c1572b4-4dce-427b-a480-50ff57d51013")
 		)
@@ -11587,6 +11631,17 @@
 			)
 		)
 		(property "Description" "N-Channel 40 V 120A (Tc) 111W (Tc) Surface Mount PowerFlat™ (5x6)"
+			(at 354.33 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MFG PN" "497-STL160N4F7CT-ND"
 			(at 354.33 83.82 0)
 			(hide yes)
 			(show_name no)
@@ -12308,6 +12363,17 @@
 			)
 		)
 		(property "Description" "N-Channel 40 V 120A (Tc) 111W (Tc) Surface Mount PowerFlat™ (5x6)"
+			(at 259.08 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MFG PN" "497-STL160N4F7CT-ND"
 			(at 259.08 83.82 0)
 			(hide yes)
 			(show_name no)
