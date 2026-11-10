@@ -8,12 +8,13 @@
 // - Current-only samples do not contain enough information to determine rotor
 //   position; the observer also needs commanded phase voltage.
 // - Replace the motor and ADC placeholders in sensorless_foc.cpp with measured
-//   values before enabling focOutputEnabled.
+//   values before enabling FOC_OUTPUT_ENABLED.
 // - Add synchronized 20 kHz ADC sampling and validate the open-loop startup
 //   ramp before connecting the inverter to a motor.
+
 namespace {
-constexpr uint8_t currentPins[] = {1, 2, 3};
-constexpr uint8_t voltagePins[] = {4, 5, 6};
+constexpr uint8_t CURRENT_PINS[] = {1, 2, 3};
+constexpr uint8_t VOLTAGE_PINS[] = {4, 5, 6};
 
 void printPacket(const bluetooth_receiver::ControlPacket& packet) {
   Serial.print((packet.switches >> 0) & 1);
@@ -35,25 +36,24 @@ void printPacket(const bluetooth_receiver::ControlPacket& packet) {
   Serial.println((packet.switches >> 4) & 1);
 
   Serial.print(F("Current: "));
-  Serial.print(analogRead(currentPins[0]));
+  Serial.print(analogRead(CURRENT_PINS[0]));
   Serial.print(',');
-  Serial.print(analogRead(currentPins[1]));
+  Serial.print(analogRead(CURRENT_PINS[1]));
   Serial.print(',');
-  Serial.println(analogRead(currentPins[2]));
+  Serial.println(analogRead(CURRENT_PINS[2]));
 
   Serial.print(F("Voltage: "));
-  Serial.print(analogRead(voltagePins[0]));
+  Serial.print(analogRead(VOLTAGE_PINS[0]));
   Serial.print(',');
-  Serial.print(analogRead(voltagePins[1]));
+  Serial.print(analogRead(VOLTAGE_PINS[1]));
   Serial.print(',');
-  Serial.println(analogRead(voltagePins[2]));
+  Serial.println(analogRead(VOLTAGE_PINS[2]));
 }
 }  // namespace
 
 void setup() {
   Serial.begin(115200);
   delay(500);
-  Serial.println(F("BLE receiver starting"));
 
   motor_pwm::begin();
   sensorless_foc::begin();
@@ -61,14 +61,5 @@ void setup() {
 }
 
 void loop() {
-  bluetooth_receiver::ControlPacket packet;
-  if (bluetooth_receiver::takePacket(packet)) {
-    printPacket(packet);
-  }
 
-  sensorless_foc::update();
-  bluetooth_receiver::update();
-  if (!bluetooth_receiver::isConnected()) {
-    motor_pwm::disable();
-  }
 }

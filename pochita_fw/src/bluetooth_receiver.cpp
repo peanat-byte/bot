@@ -8,9 +8,9 @@
 
 namespace bluetooth_receiver {
 namespace {
-constexpr char serviceUuid[] = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
-constexpr char characteristicUuid[] = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
-constexpr char senderName[] = "Pochitaa";
+constexpr char SERVICE_UUID[] = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+constexpr char CHARACTERISTIC_UUID[] = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+constexpr char SENDER_NAME[] = "Makima";
 
 BLEClient* client = nullptr;
 BLERemoteCharacteristic* dataCharacteristic = nullptr;
@@ -33,17 +33,17 @@ class ScanCallbacks : public BLEAdvertisedDeviceCallbacks {
     Serial.println(']');
 
     if (advertisedDevice.haveName() &&
-        advertisedDevice.getName() == senderName) {
+        advertisedDevice.getName() == SENDER_NAME) {
       senderAddress = advertisedDevice.getAddress();
       senderFound = true;
-      Serial.println(F("Pochitaa found"));
+      Serial.println(F("Makima found"));
     }
   }
 };
 
 class ClientCallbacks : public BLEClientCallbacks {
   void onConnect(BLEClient*) override {
-    Serial.println(F("Connected to Pochitaa"));
+    Serial.println(F("Connected to Makima"));
   }
 
   void onDisconnect(BLEClient*) override {
@@ -75,11 +75,11 @@ void scanForSender() {
 
 bool connectToSender() {
   if (!senderFound) {
-    Serial.println(F("Pochitaa not found in scan"));
+    Serial.println(F("Makima not found in scan"));
     return false;
   }
 
-  Serial.println(F("Connecting to Pochitaa..."));
+  Serial.println(F("Connecting to Makima..."));
   client = BLEDevice::createClient();
   client->setClientCallbacks(new ClientCallbacks());
   if (!client->connect(senderAddress)) {
@@ -90,7 +90,7 @@ bool connectToSender() {
     return false;
   }
 
-  BLERemoteService* service = client->getService(serviceUuid);
+  BLERemoteService* service = client->getService(SERVICE_UUID);
   if (service == nullptr) {
     Serial.println(F("Service not found"));
     client->disconnect();
@@ -100,7 +100,7 @@ bool connectToSender() {
     return false;
   }
 
-  dataCharacteristic = service->getCharacteristic(characteristicUuid);
+  dataCharacteristic = service->getCharacteristic(CHARACTERISTIC_UUID);
   if (dataCharacteristic == nullptr || !dataCharacteristic->canNotify()) {
     Serial.println(F("Notify characteristic not found"));
     client->disconnect();
@@ -118,7 +118,7 @@ bool connectToSender() {
 }  // namespace
 
 void begin() {
-  BLEDevice::init("PochitaaReceiver");
+  BLEDevice::init("Pochita");
   scanForSender();
 }
 

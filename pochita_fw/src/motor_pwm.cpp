@@ -1,69 +1,36 @@
 #include "motor_pwm.h"
 
-#include <driver/mcpwm_prelude.h>
+#include <driver/mcpwm.h>
 
 namespace motor_pwm {
 namespace {
-constexpr uint8_t phasePwmPins[] = {16, 17, 18};
-constexpr uint32_t pwmFrequency = 20000;
-constexpr uint32_t pwmResolutionHz = 10000000;
-constexpr uint32_t pwmPeriodTicks = pwmResolutionHz / pwmFrequency;
-
-mcpwm_timer_handle_t pwmTimer = nullptr;
-mcpwm_comparator_handle_t pwmComparators[3] = {};
-mcpwm_generator_handle_t pwmGenerators[3] = {};
+constexpr uint8_t PHASE_PWM_PINS[] = {16, 17, 18};
+constexpr uint32_t PWM_FREQUENCY = 20000;
+constexpr mcpwm_unit_t PWM_UNIT = MCPWM_UNIT_0;
+constexpr mcpwm_timer_t PWM_TIMERS[] = {MCPWM_TIMER_0, MCPWM_TIMER_1, MCPWM_TIMER_2};
 
 }  // namespace
 
 void begin() {
-  mcpwm_timer_config_t timerConfig = {};
-  timerConfig.group_id = 0;
-  timerConfig.clk_src = MCPWM_TIMER_CLK_SRC_DEFAULT;
-  timerConfig.resolution_hz = pwmResolutionHz;
-  timerConfig.count_mode = MCPWM_TIMER_COUNT_MODE_UP;
-  timerConfig.period_ticks = pwmPeriodTicks;
-  ESP_ERROR_CHECK(mcpwm_new_timer(&timerConfig, &pwmTimer));
-
   for (size_t phase = 0; phase < 3; ++phase) {
-    mcpwm_operator_handle_t pwmOperator = nullptr;
-    mcpwm_operator_config_t operatorConfig = {};
-    operatorConfig.group_id = 0;
-    ESP_ERROR_CHECK(mcpwm_new_operator(&operatorConfig, &pwmOperator));
-    ESP_ERROR_CHECK(mcpwm_operator_connect_timer(pwmOperator, pwmTimer));
+    ESP_ERROR_CHECK(mcpwm_gpio_init(PWM_UNIT, static_cast<mcpwm_io_signals_t>(MCPWM0A + phase * 2), PHASE_PWM_PINS[phase]));
 
-    mcpwm_comparator_config_t comparatorConfig = {};
-    comparatorConfig.flags.update_cmp_on_tez = true;
-    ESP_ERROR_CHECK(mcpwm_new_comparator(
-        pwmOperator, &comparatorConfig, &pwmComparators[phase]));
-
-    mcpwm_generator_config_t generatorConfig = {};
-    generatorConfig.gen_gpio_num = phasePwmPins[phase];
-    ESP_ERROR_CHECK(mcpwm_new_generator(
-        pwmOperator, &generatorConfig, &pwmGenerators[phase]));
-
-    ESP_ERROR_CHECK(mcpwm_generator_set_action_on_timer_event(
-        pwmGenerators[phase],
-        {MCPWM_TIMER_DIRECTION_UP, MCPWM_TIMER_EVENT_EMPTY,
-         MCPWM_GEN_ACTION_HIGH}));
-    ESP_ERROR_CHECK(mcpwm_generator_set_action_on_compare_event(
-        pwmGenerators[phase],
-        {MCPWM_TIMER_DIRECTION_UP, pwmComparators[phase],
-         MCPWM_GEN_ACTION_LOW}));
+    mcpwm_config_t config = {};
+    config.frequency = PWM_FREQUENCY;
+    config.cmpr_a = 0.0f;
+    config.cmpr_b = 0.0f;
+    config.duty_mode = MCPWM_DUTY_MODE_0;
+    config.counter_mode = MCPWM_UP_COUNTER;
+    ESP_ERROR_CHECK(mcpwm_init(PWM_UNIT, PWM_TIMERS[phase], &config));
   }
-
-  ESP_ERROR_CHECK(mcpwm_timer_enable(pwmTimer));
-  ESP_ERROR_CHECK(mcpwm_timer_start_stop(
-      pwmTimer, MCPWM_TIMER_START_NO_STOP));
   disable();
 }
 
 void setDuty(uint8_t phaseA, uint8_t phaseB, uint8_t phaseC) {
   const uint8_t duty[] = {phaseA, phaseB, phaseC};
   for (size_t phase = 0; phase < 3; ++phase) {
-    const uint32_t compareTicks =
-        (static_cast<uint32_t>(duty[phase]) * pwmPeriodTicks) / 255;
-    ESP_ERROR_CHECK(mcpwm_comparator_set_compare_value(
-        pwmComparators[phase], compareTicks));
+    const float dutyPercent = static_cast<float>(duty[phase]) * 100.0f / 255.0f;
+    ESP_ERROR_CHECK(mcpwm_set_duty(PWM_UNIT, PWM_TIMERS[phase], MCPWM_GEN_A, dutyPercent));
   }
 }
 

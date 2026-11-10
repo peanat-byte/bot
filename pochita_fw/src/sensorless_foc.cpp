@@ -12,32 +12,31 @@ namespace {
 // - motor phase inductance
 // - verified phase resistance and DC bus voltage
 // - current and voltage protection limits
-constexpr uint8_t currentPins[] = {1, 2};
-constexpr uint8_t voltagePins[] = {4, 5};
-constexpr float adcReferenceVoltage = 3.3f;
-constexpr float adcMaximumCode = 4095.0f;
-constexpr float currentBiasVoltage = 1.65f;
-constexpr float currentAmplifierGain = 10.0f;
-constexpr float shuntResistance = 0.002f;
-constexpr float motorResistance = 45.0f;
-constexpr float motorInductance = 1.0e-6f;  // Placeholder.
-constexpr float dcBusVoltage = 24.0f;
-constexpr uint8_t polePairs = 7;
+constexpr uint8_t CURRENT_PINS[] = {1, 2};
+constexpr uint8_t VOLTAGE_PINS[] = {4, 5};
+constexpr float ADC_REFERENCE_VOLTAGE = 3.3f;
+constexpr float ADC_MAXIMUM_CODE = 4095.0f;
+constexpr float CURRENT_BIAS_VOLTAGE = 1.65f;
+constexpr float CURRENT_AMPLIFIER_GAIN = 10.0f;
+constexpr float SHUNT_RESISTANCE = 0.002f;
+constexpr float MOTOR_RESISTANCE = 45.0f;
+constexpr float MOTOR_INDUCTANCE = 1.0e-6f;  // Placeholder.
+constexpr float DC_BUS_VOLTAGE = 24.0f;
+constexpr uint8_t POLE_PAIRS = 7;
 
-constexpr float controlFrequency = 20000.0f;
-constexpr float controlPeriod = 1.0f / controlFrequency;
-constexpr uint32_t controlPeriodMicros = 1000000UL / 20000UL;
-constexpr float twoPi = 6.28318530718f;
-constexpr float oneOverSqrtThree = 0.57735026919f;
-constexpr float sqrtThreeOverTwo = 0.86602540378f;
+constexpr float CONTROL_FREQUENCY = 20000.0f;
+constexpr float CONTROL_PERIOD = 1.0f / CONTROL_FREQUENCY;
+constexpr uint32_t CONTROL_PERIOD_MICROS = 1000000UL / 20000UL;
+constexpr float ONE_OVER_SQRT_THREE = 0.57735026919f;
+constexpr float SQRT_THREE_OVER_TWO = 0.86602540378f;
 
 // Keep this false until the observer and protections are validated on hardware.
-constexpr bool focOutputEnabled = false;
-constexpr float testIqAmps = 0.5f;
-constexpr float maximumVoltage = dcBusVoltage * 0.45f;
-constexpr uint32_t alignmentTimeMicros = 300000;
-constexpr float openLoopStartSpeed = 20.0f;
-constexpr float openLoopAcceleration = 3000.0f;
+constexpr bool FOC_OUTPUT_ENABLED = false;
+constexpr float TEST_IQ_AMPS = 0.5f;
+constexpr float MAXIMUM_VOLTAGE = DC_BUS_VOLTAGE * 0.45f;
+constexpr uint32_t ALIGNMENT_TIME_MICROS = 300000;
+constexpr float OPEN_LOOP_START_SPEED = 20.0f;
+constexpr float OPEN_LOOP_ACCELERATION = 3000.0f;
 
 struct AlphaBeta {
   float alpha;
@@ -51,7 +50,7 @@ struct PhaseCurrents {
 };
 
 struct PIController {
-  float integral = 0.0f;
+  float integral;
   float kp;
   float ki;
   float limit;
@@ -69,15 +68,15 @@ uint32_t startTimeMicros = 0;
 uint32_t lastUpdateMicros = 0;
 bool observerLocked = false;
 
-PIController idController{0.0f, 0.0f, 0.0f, maximumVoltage};
-PIController iqController{0.0f, 0.0f, 0.0f, maximumVoltage};
+PIController idController = {0.0f, 0.0f, 0.0f, MAXIMUM_VOLTAGE};
+PIController iqController = {0.0f, 0.0f, 0.0f, MAXIMUM_VOLTAGE};
 
 float wrapAngle(float angle) {
-  while (angle >= twoPi) {
-    angle -= twoPi;
+  while (angle >= TWO_PI) {
+    angle -= TWO_PI;
   }
   while (angle < 0.0f) {
-    angle += twoPi;
+    angle += TWO_PI;
   }
   return angle;
 }
@@ -87,22 +86,23 @@ float clamp(float value, float minimum, float maximum) {
 }
 
 float adcVoltage(uint8_t pin) {
-  return analogRead(pin) * adcReferenceVoltage / adcMaximumCode;
+  return analogRead(pin) * ADC_REFERENCE_VOLTAGE / ADC_MAXIMUM_CODE;
 }
 
 float readCurrentAmps(uint8_t pin) {
-  return (adcVoltage(pin) - currentBiasVoltage) /
-         (currentAmplifierGain * shuntResistance);
+  return (adcVoltage(pin) - CURRENT_BIAS_VOLTAGE) /
+         (CURRENT_AMPLIFIER_GAIN * SHUNT_RESISTANCE);
 }
 
 PhaseCurrents readCurrents() {
-  const float phaseA = readCurrentAmps(currentPins[0]);
-  const float phaseB = readCurrentAmps(currentPins[1]);
+  const float phaseA = readCurrentAmps(CURRENT_PINS[0]);
+  const float phaseB = readCurrentAmps(CURRENT_PINS[1]);
   return {phaseA, phaseB, -(phaseA + phaseB)};
 }
 
 AlphaBeta clarke(const PhaseCurrents& currents) {
-  return {currents.a, (currents.a + 2.0f * currents.b) * oneOverSqrtThree};
+  return {currents.a,
+          (currents.a + 2.0f * currents.b) * ONE_OVER_SQRT_THREE};
 }
 
 AlphaBeta rotateToDq(const AlphaBeta& value, float angle) {
@@ -127,17 +127,15 @@ float runPI(PIController& controller, float error, float dt) {
                -controller.limit, controller.limit);
 }
 
-AlphaBeta commandedPhaseVoltage(uint8_t dutyA, uint8_t dutyB,
-                                uint8_t dutyC) {
+AlphaBeta commandedPhaseVoltage(uint8_t dutyA, uint8_t dutyB, uint8_t dutyC) {
   const float a = static_cast<float>(dutyA) / 255.0f;
   const float b = static_cast<float>(dutyB) / 255.0f;
   const float c = static_cast<float>(dutyC) / 255.0f;
-  return {dcBusVoltage * (a - 0.5f * (b + c)),
-          dcBusVoltage * oneOverSqrtThree * (b - c)};
+  return {DC_BUS_VOLTAGE * (a - 0.5f * (b + c)),
+          DC_BUS_VOLTAGE * ONE_OVER_SQRT_THREE * (b - c)};
 }
 
-void slidingModeObserver(const AlphaBeta& voltage, const AlphaBeta& current,
-                         float dt) {
+void slidingModeObserver(const AlphaBeta& voltage, const AlphaBeta& current, float dt) {
   const float currentErrorAlpha = current.alpha - estimatedCurrentAlpha;
   const float currentErrorBeta = current.beta - estimatedCurrentBeta;
   const float observerGain = 8.0f;
@@ -149,24 +147,21 @@ void slidingModeObserver(const AlphaBeta& voltage, const AlphaBeta& current,
       clamp(observerGain * currentErrorBeta, -1.0f, 1.0f);
 
   estimatedCurrentAlpha +=
-      (voltage.alpha - motorResistance * estimatedCurrentAlpha -
+      (voltage.alpha - MOTOR_RESISTANCE * estimatedCurrentAlpha -
        backEmfAlpha - correctionAlpha) /
-      motorInductance * dt;
+      MOTOR_INDUCTANCE * dt;
   estimatedCurrentBeta +=
-      (voltage.beta - motorResistance * estimatedCurrentBeta -
+      (voltage.beta - MOTOR_RESISTANCE * estimatedCurrentBeta -
        backEmfBeta - correctionBeta) /
-      motorInductance * dt;
+      MOTOR_INDUCTANCE * dt;
 
   backEmfAlpha += backEmfGain * correctionAlpha * dt;
   backEmfBeta += backEmfGain * correctionBeta * dt;
 
   const float emfMagnitude = hypotf(backEmfAlpha, backEmfBeta);
   if (emfMagnitude > 0.2f) {
-    const float measuredAngle =
-        atan2f(-backEmfAlpha, backEmfBeta);
-    const float phaseError =
-        atan2f(sinf(measuredAngle - observerAngle),
-               cosf(measuredAngle - observerAngle));
+    const float measuredAngle = atan2f(-backEmfAlpha, backEmfBeta);
+    const float phaseError = atan2f(sinf(measuredAngle - observerAngle), cosf(measuredAngle - observerAngle));
     observerSpeed += 1000.0f * phaseError * dt;
     observerSpeed = clamp(observerSpeed, -20000.0f, 20000.0f);
     observerAngle = wrapAngle(observerAngle + observerSpeed * dt);
@@ -174,25 +169,19 @@ void slidingModeObserver(const AlphaBeta& voltage, const AlphaBeta& current,
   }
 }
 
-void calculateSvpwm(const AlphaBeta& voltage, uint8_t& dutyA,
-                    uint8_t& dutyB, uint8_t& dutyC) {
-  const float normalizedAlpha = clamp(voltage.alpha / dcBusVoltage, -0.5f, 0.5f);
-  const float normalizedBeta = clamp(voltage.beta / dcBusVoltage, -0.5f, 0.5f);
+void calculateSvpwm(const AlphaBeta& voltage, uint8_t& dutyA, uint8_t& dutyB, uint8_t& dutyC) {
+  const float normalizedAlpha = clamp(voltage.alpha / DC_BUS_VOLTAGE, -0.5f, 0.5f);
+  const float normalizedBeta = clamp(voltage.beta / DC_BUS_VOLTAGE, -0.5f, 0.5f);
   const float phaseA = normalizedAlpha;
-  const float phaseB = -0.5f * normalizedAlpha +
-                       sqrtThreeOverTwo * normalizedBeta;
-  const float phaseC = -0.5f * normalizedAlpha -
-                       sqrtThreeOverTwo * normalizedBeta;
+  const float phaseB = -0.5f * normalizedAlpha + SQRT_THREE_OVER_TWO * normalizedBeta;
+  const float phaseC = -0.5f * normalizedAlpha - SQRT_THREE_OVER_TWO * normalizedBeta;
   const float maximum = fmaxf(phaseA, fmaxf(phaseB, phaseC));
   const float minimum = fminf(phaseA, fminf(phaseB, phaseC));
   const float commonMode = -0.5f * (maximum + minimum);
 
-  dutyA = static_cast<uint8_t>(clamp((phaseA + commonMode + 0.5f) * 255.0f,
-                                     0.0f, 255.0f));
-  dutyB = static_cast<uint8_t>(clamp((phaseB + commonMode + 0.5f) * 255.0f,
-                                     0.0f, 255.0f));
-  dutyC = static_cast<uint8_t>(clamp((phaseC + commonMode + 0.5f) * 255.0f,
-                                     0.0f, 255.0f));
+  dutyA = static_cast<uint8_t>(clamp((phaseA + commonMode + 0.5f) * 255.0f, 0.0f, 255.0f));
+  dutyB = static_cast<uint8_t>(clamp((phaseB + commonMode + 0.5f) * 255.0f, 0.0f, 255.0f));
+  dutyC = static_cast<uint8_t>(clamp((phaseC + commonMode + 0.5f) * 255.0f, 0.0f, 255.0f));
 }
 
 void updateControl(float dt) {
@@ -201,10 +190,10 @@ void updateControl(float dt) {
   const AlphaBeta voltage = commandedPhaseVoltage(128, 128, 128);
   slidingModeObserver(voltage, currentAlphaBeta, dt);
 
-  if (micros() - startTimeMicros < alignmentTimeMicros) {
+  if (micros() - startTimeMicros < ALIGNMENT_TIME_MICROS) {
     electricalAngle = 0.0f;
   } else if (!observerLocked) {
-    openLoopSpeed = fminf(openLoopSpeed + openLoopAcceleration * dt,
+    openLoopSpeed = fminf(openLoopSpeed + OPEN_LOOP_ACCELERATION * dt,
                           2000.0f);
     electricalAngle = wrapAngle(electricalAngle + openLoopSpeed * dt);
   } else {
@@ -213,16 +202,15 @@ void updateControl(float dt) {
 
   const AlphaBeta dqCurrent = rotateToDq(currentAlphaBeta, electricalAngle);
   const float vd = runPI(idController, -dqCurrent.alpha, dt);
-  const float vq = runPI(iqController, testIqAmps - dqCurrent.beta, dt);
-  const AlphaBeta alphaBetaVoltage =
-      rotateToAlphaBeta({vd, vq}, electricalAngle);
+  const float vq = runPI(iqController, TEST_IQ_AMPS - dqCurrent.beta, dt);
+  const AlphaBeta alphaBetaVoltage = rotateToAlphaBeta({vd, vq}, electricalAngle);
 
   uint8_t dutyA;
   uint8_t dutyB;
   uint8_t dutyC;
   calculateSvpwm(alphaBetaVoltage, dutyA, dutyB, dutyC);
 
-  if (focOutputEnabled) {
+  if (FOC_OUTPUT_ENABLED) {
     motor_pwm::setDuty(dutyA, dutyB, dutyC);
   } else {
     motor_pwm::disable();
@@ -232,21 +220,25 @@ void updateControl(float dt) {
 
 void begin() {
   analogReadResolution(12);
-  idController = {0.0f, motorInductance * controlFrequency, 0.0f,
-                  maximumVoltage};
-  iqController = {0.0f, motorInductance * controlFrequency, 0.0f,
-                  maximumVoltage};
+  idController.integral = 0.0f;
+  idController.kp = 0.0f;
+  idController.ki = MOTOR_INDUCTANCE * CONTROL_FREQUENCY;
+  idController.limit = MAXIMUM_VOLTAGE;
+  iqController.integral = 0.0f;
+  iqController.kp = 0.0f;
+  iqController.ki = MOTOR_INDUCTANCE * CONTROL_FREQUENCY;
+  iqController.limit = MAXIMUM_VOLTAGE;
   startTimeMicros = micros();
   lastUpdateMicros = startTimeMicros;
 }
 
 void update() {
   const uint32_t now = micros();
-  if (now - lastUpdateMicros < controlPeriodMicros) {
+  if (now - lastUpdateMicros < CONTROL_PERIOD_MICROS) {
     return;
   }
-  lastUpdateMicros += controlPeriodMicros;
-  updateControl(controlPeriod);
+  lastUpdateMicros += CONTROL_PERIOD_MICROS;
+  updateControl(CONTROL_PERIOD);
 }
 
 }  // namespace sensorless_foc
