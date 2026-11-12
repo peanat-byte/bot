@@ -5,6 +5,7 @@
 #include "motor_pwm.h"
 
 namespace sensorless_foc {
+
 namespace {
 // TODO: Replace placeholders with measured values before enabling PWM output:
 // - current sensor zero offsets
@@ -12,8 +13,10 @@ namespace {
 // - motor phase inductance
 // - verified phase resistance and DC bus voltage
 // - current and voltage protection limits
+
 constexpr uint8_t CURRENT_PINS[] = {1, 2};
-constexpr uint8_t VOLTAGE_PINS[] = {4, 5};
+// constexpr uint8_t VOLTAGE_PINS[] = {4, 5};
+
 constexpr float ADC_REFERENCE_VOLTAGE = 3.3f;
 constexpr float ADC_MAXIMUM_CODE = 4095.0f;
 constexpr float CURRENT_BIAS_VOLTAGE = 1.65f;
@@ -21,6 +24,7 @@ constexpr float CURRENT_AMPLIFIER_GAIN = 10.0f;
 constexpr float SHUNT_RESISTANCE = 0.002f;
 constexpr float MOTOR_RESISTANCE = 45.0f;
 constexpr float MOTOR_INDUCTANCE = 1.0e-6f;  // Placeholder.
+constexpr float MOTOR_FLUX_LINKAGE = 0.01f;  // Placeholder.
 constexpr float DC_BUS_VOLTAGE = 24.0f;
 constexpr uint8_t POLE_PAIRS = 7;
 
@@ -29,6 +33,9 @@ constexpr float CONTROL_PERIOD = 1.0f / CONTROL_FREQUENCY;
 constexpr uint32_t CONTROL_PERIOD_MICROS = 1000000UL / 20000UL;
 constexpr float ONE_OVER_SQRT_THREE = 0.57735026919f;
 constexpr float SQRT_THREE_OVER_TWO = 0.86602540378f;
+constexpr float BEMF_FILTER_TIME_CONSTANT = 0.001f;
+constexpr float PLL_PROPORTIONAL_GAIN = 100.0f;
+constexpr float PLL_INTEGRAL_GAIN = 1000.0f;
 
 // Keep this false until the observer and protections are validated on hardware.
 constexpr bool FOC_OUTPUT_ENABLED = false;
@@ -60,10 +67,12 @@ float electricalAngle = 0.0f;
 float openLoopSpeed = 0.0f;
 float observerAngle = 0.0f;
 float observerSpeed = 0.0f;
-float backEmfAlpha = 0.0f;
-float backEmfBeta = 0.0f;
-float estimatedCurrentAlpha = 0.0f;
-float estimatedCurrentBeta = 0.0f;
+float filteredBackEmfD = 0.0f;
+float filteredBackEmfQ = 0.0f;
+float previousCurrentAlpha = 0.0f;
+float previousCurrentBeta = 0.0f;
+float pllCorrection = 0.0f;
+AlphaBeta previousVoltage = {0.0f, 0.0f};
 uint32_t startTimeMicros = 0;
 uint32_t lastUpdateMicros = 0;
 bool observerLocked = false;
@@ -127,42 +136,35 @@ float runPI(PIController& controller, float error, float dt) {
                -controller.limit, controller.limit);
 }
 
-AlphaBeta commandedPhaseVoltage(uint8_t dutyA, uint8_t dutyB, uint8_t dutyC) {
-  const float a = static_cast<float>(dutyA) / 255.0f;
-  const float b = static_cast<float>(dutyB) / 255.0f;
-  const float c = static_cast<float>(dutyC) / 255.0f;
-  return {DC_BUS_VOLTAGE * (a - 0.5f * (b + c)),
-          DC_BUS_VOLTAGE * ONE_OVER_SQRT_THREE * (b - c)};
-}
+void pllEstimator(const AlphaBeta& voltage, const AlphaBeta& current, float dt) {
+  const AlphaBeta currentDerivative = {
+      (current.alpha - previousCurrentAlpha) / dt,
+      (current.beta - previousCurrentBeta) / dt};
+  previousCurrentAlpha = current.alpha;
+  previousCurrentBeta = current.beta;
 
-void slidingModeObserver(const AlphaBeta& voltage, const AlphaBeta& current, float dt) {
-  const float currentErrorAlpha = current.alpha - estimatedCurrentAlpha;
-  const float currentErrorBeta = current.beta - estimatedCurrentBeta;
-  const float observerGain = 8.0f;
-  const float backEmfGain = 0.25f;
+  const AlphaBeta backEmf = {
+      voltage.alpha - MOTOR_RESISTANCE * current.alpha -
+          MOTOR_INDUCTANCE * currentDerivative.alpha,
+      voltage.beta - MOTOR_RESISTANCE * current.beta -
+          MOTOR_INDUCTANCE * currentDerivative.beta};
+  const float filterCoefficient =
+      dt / (BEMF_FILTER_TIME_CONSTANT + dt);
+  const AlphaBeta backEmfDq = rotateToDq(backEmf, observerAngle);
+  filteredBackEmfD +=
+      filterCoefficient * (backEmfDq.alpha - filteredBackEmfD);
+  filteredBackEmfQ +=
+      filterCoefficient * (backEmfDq.beta - filteredBackEmfQ);
 
-  const float correctionAlpha =
-      clamp(observerGain * currentErrorAlpha, -1.0f, 1.0f);
-  const float correctionBeta =
-      clamp(observerGain * currentErrorBeta, -1.0f, 1.0f);
-
-  estimatedCurrentAlpha +=
-      (voltage.alpha - MOTOR_RESISTANCE * estimatedCurrentAlpha -
-       backEmfAlpha - correctionAlpha) /
-      MOTOR_INDUCTANCE * dt;
-  estimatedCurrentBeta +=
-      (voltage.beta - MOTOR_RESISTANCE * estimatedCurrentBeta -
-       backEmfBeta - correctionBeta) /
-      MOTOR_INDUCTANCE * dt;
-
-  backEmfAlpha += backEmfGain * correctionAlpha * dt;
-  backEmfBeta += backEmfGain * correctionBeta * dt;
-
-  const float emfMagnitude = hypotf(backEmfAlpha, backEmfBeta);
+  const float emfMagnitude =
+      hypotf(filteredBackEmfD, filteredBackEmfQ);
   if (emfMagnitude > 0.2f) {
-    const float measuredAngle = atan2f(-backEmfAlpha, backEmfBeta);
-    const float phaseError = atan2f(sinf(measuredAngle - observerAngle), cosf(measuredAngle - observerAngle));
-    observerSpeed += 1000.0f * phaseError * dt;
+    const float phaseError = filteredBackEmfD;
+    pllCorrection += PLL_INTEGRAL_GAIN * phaseError * dt;
+    pllCorrection = clamp(pllCorrection, -20000.0f, 20000.0f);
+    observerSpeed =
+        filteredBackEmfQ / MOTOR_FLUX_LINKAGE +
+        PLL_PROPORTIONAL_GAIN * phaseError + pllCorrection;
     observerSpeed = clamp(observerSpeed, -20000.0f, 20000.0f);
     observerAngle = wrapAngle(observerAngle + observerSpeed * dt);
     observerLocked = true;
@@ -187,8 +189,7 @@ void calculateSvpwm(const AlphaBeta& voltage, uint8_t& dutyA, uint8_t& dutyB, ui
 void updateControl(float dt) {
   const PhaseCurrents currents = readCurrents();
   const AlphaBeta currentAlphaBeta = clarke(currents);
-  const AlphaBeta voltage = commandedPhaseVoltage(128, 128, 128);
-  slidingModeObserver(voltage, currentAlphaBeta, dt);
+  pllEstimator(previousVoltage, currentAlphaBeta, dt);
 
   if (micros() - startTimeMicros < ALIGNMENT_TIME_MICROS) {
     electricalAngle = 0.0f;
@@ -204,6 +205,7 @@ void updateControl(float dt) {
   const float vd = runPI(idController, -dqCurrent.alpha, dt);
   const float vq = runPI(iqController, TEST_IQ_AMPS - dqCurrent.beta, dt);
   const AlphaBeta alphaBetaVoltage = rotateToAlphaBeta({vd, vq}, electricalAngle);
+  previousVoltage = alphaBetaVoltage;
 
   uint8_t dutyA;
   uint8_t dutyB;
@@ -220,6 +222,17 @@ void updateControl(float dt) {
 
 void begin() {
   analogReadResolution(12);
+  electricalAngle = 0.0f;
+  openLoopSpeed = 0.0f;
+  observerAngle = 0.0f;
+  observerSpeed = 0.0f;
+  filteredBackEmfD = 0.0f;
+  filteredBackEmfQ = 0.0f;
+  previousCurrentAlpha = 0.0f;
+  previousCurrentBeta = 0.0f;
+  pllCorrection = 0.0f;
+  previousVoltage = {0.0f, 0.0f};
+  observerLocked = false;
   idController.integral = 0.0f;
   idController.kp = 0.0f;
   idController.ki = MOTOR_INDUCTANCE * CONTROL_FREQUENCY;
